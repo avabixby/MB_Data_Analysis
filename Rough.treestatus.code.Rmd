@@ -1,0 +1,97 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+
+# Represent it
+  ggplot(mw, aes(x=`Tree Status`, group=`Stand ID`, fill=`Stand ID`)) +
+    geom_bar( alpha=0.6, position = 'identity')
+
+```
+
+
+```{r}
+
+
+# Ensure factors
+mw <- mw %>%
+  mutate(
+    `Tree Status` = factor(`Tree Status`),
+    `Stand ID` = factor(`Stand ID`)
+  )
+
+# Summarise counts & proportions
+mw_prop <- mw %>%
+  group_by(`Stand ID`, `Tree Status`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(`Stand ID`) %>%
+  mutate(prop = count / sum(count))
+
+# Plot proportional bars
+p1 <- ggplot(mw_prop, aes(x = `Stand ID`, y = prop, fill = `Tree Status`)) +
+  geom_bar(stat = "identity", position = "fill", width = 0.6) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Tree Status by Stand",
+    x = "Stand ID",
+    y = "Proportion",
+    fill = "Tree Status"
+  ) +
+  theme_ipsum(base_size = 14) +
+  theme(legend.position = "right")
+
+print(p1)
+
+```
+
+
+
+```{r}
+mw_prop1 <- mw %>%
+  group_by(`Stand ID`, `Damage Type Code`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(`Stand ID`) %>%
+  mutate(prop = count / sum(count, na.rm=TRUE)) 
+
+mw_prop1 <- mw_prop1 %>% drop_na(`Damage Type Code`, `Stand ID`)
+
+
+pc <- ggplot(mw_prop1, aes(x = `Stand ID`, y = prop, fill =`Damage Type Code`,)) +
+  geom_bar(stat = "identity", position = "fill", width = 0.6) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Damage Code by Stand",
+    x = "Stand ID",
+    y = "Proportion",
+    fill = "Damage Code"
+  ) +
+  theme_ipsum(base_size = 14) +
+  theme(legend.position = "right")
+
+print(pc)
+```
+
+```{r}
+ggplot(
+  data = mw %>% filter(`Tree Status` == "DE"),
+  aes(x = `Stand ID`, fill = `Tree Status`)
+) +
+  geom_bar(stat="count", position = "dodge") +
+  labs(title = "Snag Occurence by Stand")+ 
+    theme(
+    panel.background = element_rect(fill = "white"),  # Panel background color
+    panel.grid.major = element_line(color = "lightgray", size = 0.8), # Major grid lines
+    panel.grid.minor = element_line(color = "gray80", size = 0.5, linetype = "dashed"), # Minor grid lines
+    plot.background = element_rect(fill = "aliceblue"))+#Full Background
+  coord_flip()
+
+```
+
+
+
